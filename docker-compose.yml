@@ -1,56 +1,103 @@
-version: "3.9"
+x-ticket-base: &ticket_base
+  build: .
+  env_file:
+    - ./.env
+  environment:
+    DJANGO_SETTINGS_MODULE: core.settings.prod
+    GRAPH_DISABLED: "1"
+  volumes:
+    - static_volume:/home/app/web/static
+    - media_volume:/home/app/web/media
 
 services:
   db:
-    image: postgres
+    image: postgres:17
     env_file:
       - ./.env
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-  web: &ticket
-    build: .
-    restart: always
-    env_file:
-      - ./.env
-    command: >
-      bash -c "python manage.py migrate &&
-               python manage.py collectstatic --noinput &&
-               gunicorn core.wsgi -b 0.0.0.0:8000 --worker-tmp-dir /dev/shm --workers=4 --threads=4 --worker-class=gthread --access-logfile - --log-level info"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+
+  # Führt Migrationen & collectstatic einmal aus und beendet sich.
+  migrate:
+    <<: *ticket_base
+    restart: "no"
     depends_on:
-      - db
-    volumes:
-      - static_volume:/home/app/web/static
-      - media_volume:/home/app/web/media
+      db:
+        condition: service_healthy
+    command: >
+      bash -c "
+        python manage.py migrate &&
+        python manage.py collectstatic --noinput
+      "
+
+  web:
+    <<: *ticket_base
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command:
+      - gunicorn
+      - core.wsgi
+      - --bind
+      - 0.0.0.0:8000
+      - --worker-tmp-dir
+      - /dev/shm
+      - --workers
+      - "4"
+      - --threads
+      - "4"
+      - --worker-class
+      - gthread
+      - --access-logfile
+      - "-"
+      - --log-level
+      - info
     expose:
-      - 8000
+      - "8000"
+
   nginx:
     build: ./nginx
-    ports:
-      - 127.0.0.1:1337:80
     depends_on:
-      - db
-      - web
+      web:
+        condition: service_started
+    ports:
+      - "127.0.0.1:1337:80"
     volumes:
       - static_volume:/home/app/web/static
       - media_volume:/home/app/web/media
+
   huey:
-    <<: *ticket
-    ports: [ ]
-    command: >
-      /bin/bash -c "python manage.py run_huey;"
+    <<: *ticket_base
+    restart: unless-stopped
     depends_on:
-      - db
-      - web
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command: >
+      bash -c "python manage.py run_huey"
+
   background_tasks:
-    <<: *ticket
-    ports: [ ]
-    command: >
-      /bin/bash -c "python manage.py process_tasks;"
+    <<: *ticket_base
+    restart: unless-stopped
     depends_on:
-      - db
-      - web
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command: >
+      bash -c "python manage.py process_tasks"
 
 volumes:
   postgres_data:

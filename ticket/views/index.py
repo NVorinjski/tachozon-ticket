@@ -43,29 +43,42 @@ class IndexView(ListView):
         if user.is_staff:
             open_inactive_tickets = Ticket.objects.open_and_inactive_assigned_to(user)
             context['tickets'] = open_inactive_tickets
-            analytics = Analytics.objects.all()
-            timeline_events = context["timeline_events"]
-            page_date = context["timeline_events"][0][0].date if timeline_events else date.today()
+
+            # Falls du das komplette QuerySet brauchst, behalte es separat
+            analytics_qs = Analytics.objects.all()
+
+            # Benötigte Analytics-Objekte immer vorhanden machen
+            pie_chart, _ = Analytics.objects.get_or_create(name='Tickets pro Problemquelle')
+            bar_chart, _ = Analytics.objects.get_or_create(name='Tickets pro Tag')
+
+            # Timeline-Datum defensiv ermitteln
+            timeline_events = context.get("timeline_events", [])
+            page_date = timeline_events[0][0].date if timeline_events else date.today()
             next_page_date = page_date + timedelta(days=1)
 
-            # FIXME: Refactor the fuck out of this mess
-            pie_chart = analytics.get(name='Tickets pro Problemquelle')
-            bar_chart = analytics.get(name='Tickets pro Tag')
-            bar_data = ast.literal_eval(bar_chart.data)
-            context['pie_labels'] = pie_chart.labels
-            context['pie_data'] = pie_chart.data
-            context['bar_labels'] = bar_chart.labels
-            context['bar_open_data'] = bar_data[0]
-            context['bar_closed_data'] = bar_data[1]
+            # Bar-Chart-Daten sicher parsen (leerer Fallback)
+            try:
+                bar_data = ast.literal_eval(bar_chart.data) if bar_chart.data else [[], []]
+            except Exception:
+                bar_data = [[], []]
+
+            context['pie_labels'] = pie_chart.labels or []
+            context['pie_data'] = pie_chart.data or []
+            context['bar_labels'] = bar_chart.labels or []
+            context['bar_open_data'] = bar_data[0] if len(bar_data) > 0 else []
+            context['bar_closed_data'] = bar_data[1] if len(bar_data) > 1 else []
+
             context['tickets_opened_today'] = tickets.filter(
                 created_date__gt=page_date,
                 created_date__lt=next_page_date
             ).count()
+
             context['tickets_closed_today'] = tickets.filter(
                 completed_date__gt=page_date,
                 completed_date__lt=next_page_date,
                 completed=True
             ).count()
+
             context['all_open_ticket_count'] = tickets.filter(completed=False).count()
             context['all_closed_ticket_count'] = tickets.filter(completed=True).count()
             context['all_open_ticket_with_high_prio_count'] = tickets.filter(priority=2, completed=False).count()
@@ -73,6 +86,7 @@ class IndexView(ListView):
         else:
             context['open_ticket_count'] = tickets.filter(created_by=user, completed=False).count()
             context['closed_ticket_count'] = tickets.filter(created_by=user, completed=True).count()
+
         return context
 
     def get(self, request, *args, **kwargs):

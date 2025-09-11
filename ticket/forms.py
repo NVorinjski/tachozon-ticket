@@ -1,6 +1,9 @@
 from django import forms
 
 
+class MultiFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
 class CreateTicketForm(forms.Form):
     title = forms.CharField(
         label='Titel',
@@ -28,12 +31,11 @@ class CreateTicketForm(forms.Form):
     files = forms.FileField(
         label='Datei hochladen',
         required=False,
-        widget=forms.ClearableFileInput(
+        widget=MultiFileInput(
             attrs={
                 'class': 'custom-file-input',
                 'multiple': True,
                 'id': 'attachments',
-                'name': 'attachments'
             }
         )
     )

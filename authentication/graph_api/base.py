@@ -1,4 +1,5 @@
 import json
+import os
 import traceback
 
 import requests
@@ -14,6 +15,11 @@ oauth_settings = yaml.load(stream, yaml.SafeLoader)
 class GraphAPI:
 
     def __init__(self, request=None):
+        self.disabled = os.getenv('GRAPH_DISABLED', '').lower() in ('1', 'true', 'yes')
+        if self.disabled:
+            self.token = None
+            return
+        self.token = get_token(request) if request else self.get_access_token_as_application()
         # Get access token on behalf of user if request else as application
         if settings.DEBUG:
             self.token = 'faketokenfordevelopment'
