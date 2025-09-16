@@ -151,4 +151,4 @@ AZURE_APP_ID = os.getenv("AZURE_APP_ID", "123456789")
 RANDOM_TIMES = False
 
 
-MAIL_POLL_ENABLED = False
+MAIL_POLL_ENABLED = os.getenv("MAIL_POLL_ENABLED", "False").lower() in ("1", "true", "yes")
