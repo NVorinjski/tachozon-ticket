@@ -30,7 +30,7 @@ class CreateTicketView(View):
             context=context)
 
     def post(self, request, *args, **kwargs):
-        form = CreateTicketForm(request.POST)
+        form = CreateTicketForm(request.POST, request.FILES)
         if form.is_valid():
             new_ticket = Ticket.objects.create(
                 title=form.data['title'],
@@ -42,7 +42,8 @@ class CreateTicketView(View):
             new_ticket.save()
             TicketEventService(current_user=request.user, ticket=new_ticket).create_new_ticket_events()
             manual_update_analytics()
-            self.handle_attachments(attachments=request.FILES.getlist('files'), ticket=new_ticket)
+            files = request.FILES.getlist('files')
+            self.handle_attachments(attachments=files, ticket=new_ticket)
             return redirect('ticket_detail', id=new_ticket.id)
         else:
             user = request.user
@@ -70,14 +71,12 @@ class CreateTicketView(View):
         return ProblemSource.objects.get(slug=self.get_slug())
 
     def handle_attachments(self, attachments, ticket):
-        if attachments:
-            for attachment in attachments:
-                new_attachment = Attachment(
-                    name=attachment,
-                    file=attachment,
-                    ticket=ticket
-                )
-                new_attachment.save()
+        for f in attachments or []:
+            Attachment.objects.create(
+                name=getattr(f, "name", str(f)),
+                file=f,
+                ticket=ticket,
+            )
 
     def create_category(self):
         return self.get_problem_source().create_category_breadcrumb()

@@ -31,6 +31,9 @@ INSTALLED_APPS = [
     'crispy_forms'
 ]
 
+INSTALLED_APPS += ['django_mailbox']
+
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
