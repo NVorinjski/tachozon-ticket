@@ -46,10 +46,7 @@ def handle_incoming_message(sender, message: MailMessage, **kwargs):
             body = ""
 
         # Absenderzeile oben drüber
-        notes = f"""From: {from_line}
-
-                    {body}
-                """.strip()
+        notes = f"{from_line}\n{body}".strip()
 
         try:
             psource = ProblemSource.objects.get(slug="email")
