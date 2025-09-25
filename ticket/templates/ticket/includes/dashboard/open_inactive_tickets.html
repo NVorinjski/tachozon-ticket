@@ -24,7 +24,7 @@
                             href="{% url 'ticket_detail' id=ticket.id %}">{{ ticket.category }}</a></td>
                     <td class="text-bold">{{ ticket.created_by.first_name }}</td>
                     <td>{{ ticket.title }}</td>
-                    <td>{{ ticket.note|truncatechars_html:100|safe }}</td>
+                    <td>{{ ticket.note|truncatechars_html:100|linebreaksbr }}</td>
                     <td>
                         <button type="button"
                                 class="btn btn-warning dropdown-toggle"

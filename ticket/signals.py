@@ -5,6 +5,8 @@ from django.utils.html import strip_tags
 from django.utils import timezone
 from django.core.files.base import ContentFile
 from email.utils import parseaddr
+import html as ihtml
+import re
 
 from django_mailbox.signals import message_received
 from django_mailbox.models import Message as MailMessage
@@ -22,31 +24,69 @@ def _system_user():
         u = User.objects.filter(is_superuser=True).first() or User.objects.filter(is_staff=True).first()
     return u
 
+def _normalize_newlines(s: str) -> str:
+    # CRLF/CR → LF, doppelte Leerzeilen nicht aggressiv entfernen
+    return s.replace('\r\n', '\n').replace('\r', '\n')
+
+def _html_to_text_preserving_structure(html: str) -> str:
+    """
+    Schlanke HTML→Text-Umwandlung mit Absätzen/Zeilenumbrüchen/Listen.
+    Keine externen Pakete nötig; ausreichend für Outlook/typische Mails.
+    """
+    if not html:
+        return ""
+
+    # 1) Zeilenumbrüche für Blockelemente
+    block_tags_break_before = r'(</?(p|div|h[1-6]|section|article|blockquote|table|tr|ul|ol)\b[^>]*>)'
+    html = re.sub(block_tags_break_before, r'\n\1', html, flags=re.I)
+
+    # 2) <br> → Zeilenumbruch
+    html = re.sub(r'<br\s*/?>', '\n', html, flags=re.I)
+
+    # 3) Listenelemente als Bullet Points
+    #    - li close → newline, li open → "- " (wenn nicht schon Zeilenanfang)
+    html = re.sub(r'</li\s*>', '\n', html, flags=re.I)
+    html = re.sub(r'<li\b[^>]*>', '\n- ', html, flags=re.I)
+
+    # 4) Tabellenzellen etwas trennen
+    html = re.sub(r'</t[hd]\s*>', '\t', html, flags=re.I)
+
+    # 5) Tags entfernen
+    text = re.sub(r'<[^>]+>', '', html)
+
+    # 6) HTML Entities auflösen & Newlines normalisieren
+    text = ihtml.unescape(text)
+    text = _normalize_newlines(text)
+
+    # 7) Mehrfache Leerzeilen minimal glätten (max. 2 in Folge)
+    text = re.sub(r'\n{3,}', '\n\n', text)
+
+    # 8) Trimmen
+    return text.strip()
+
 @receiver(message_received)
 def handle_incoming_message(sender, message: MailMessage, **kwargs):
     try:
         subject = message.subject or "(kein Betreff)"
-        # --- Absender sauber extrahieren ---
+
         name, addr = parseaddr(message.from_header or "")
-        # hübsch formatiert, z. B. "Max Mustermann <max@example.com>"
         if name and addr:
             from_line = f"Von: {name} <{addr}>"
         elif addr:
             from_line = f"Von: {addr}"
         else:
-            # Fallback: roher Header, falls nichts geparst werden konnte
             from_line = f"Von: {message.from_header or 'Unbekannt'}"
 
-        # Bevorzuge Plaintext; wenn nur HTML da ist -> Stripped Text.
+        # Body wählen
         if message.text:
-            body = message.text
+            body = _normalize_newlines(message.text)
         elif message.html:
-            body = strip_tags(message.html)
+            body = _html_to_text_preserving_structure(message.html)
         else:
             body = ""
 
         # Absenderzeile oben drüber
-        notes = f"{from_line}\n{body}".strip()
+        notes = f"{from_line}\n\n{body}".strip()
 
         try:
             psource = ProblemSource.objects.get(slug="email")

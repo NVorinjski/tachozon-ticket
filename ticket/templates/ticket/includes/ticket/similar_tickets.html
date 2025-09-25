@@ -14,7 +14,7 @@
                 <td><a href="{% url 'ticket_detail' id=ticket.id %}">{{ ticket.id }}</a></td>
                 <td><a href="{% url 'ticket_detail' id=ticket.id %}">{{ ticket.category }}</a></td>
                 <td>{{ ticket.title }}</td>
-                <td>{{ ticket.note|truncatechars_html:255|safe }}</td>
+                <td>{{ ticket.note|truncatechars_html:255|linebreaksbr }}</td>
             </tr>
         {% endfor %}
         </tbody>
