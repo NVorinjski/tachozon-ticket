@@ -26,7 +26,7 @@
 
         <div class="login-logo">
             <a target="_blank" rel="noopener noreferrer"
-               href="{% url 'home' %}"><h1><b>IT</b>ticket</a></h3>
+               href="{% url 'home' %}"><h1><b>{{ SITE_BRAND }}</b>{{ PRODUCT_NAME }}</a></h3>
         </div>
 
         <!-- /.login-logo -->
@@ -45,16 +45,8 @@
                     <div>
                         <div class="row">
                             <div class="col-12">
-                                <button onclick="initiateSSO();" type="button"
-                                        class="btn btn-primary btn-block">Einloggen mit Microsoft
-                                </button>
-                            </div>
-                        </div>
-                        </br>
-                        <div class="row">
-                            <div class="col-12">
                                 <button class="btn btn-danger btn-block" type="button"
-                                        data-toggle="collapse" data-target="#credentials">Einloggen mit Zugangsdaten
+                                        data-toggle="collapse" data-target="#credentials">LOGIN
                                 </button>
                             </div>
                         </div>

@@ -79,6 +79,7 @@ TEMPLATES = [
 
                 # Ticket Notifications
                 'ticket.context_processor.top_notifications',
+                "core.context_processors.branding",
             ],
         },
     },
@@ -152,3 +153,8 @@ RANDOM_TIMES = False
 
 
 MAIL_POLL_ENABLED = os.getenv("MAIL_POLL_ENABLED", "False").lower() in ("1", "true", "yes")
+
+SITE_BRAND   = os.environ.get("SITE_BRAND", "Tachozon")      # z.B. "Tachozon" / "IT-Telematics"
+PRODUCT_NAME = os.environ.get("PRODUCT_NAME", "Ticket")      # meist "Ticket"
+SITE_TITLE   = os.environ.get("SITE_TITLE", f"{SITE_BRAND} {PRODUCT_NAME}")
+LOGO_URL     = os.environ.get("LOGO_URL", "/static/assets/img/logo.png")
