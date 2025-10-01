@@ -1,3 +1,4 @@
+{% load render_note %}
 <form id="pause_ticket_form" method="post" style="display: none">{% csrf_token %}</form>
 
 <div class="modal fade show" id="open_inactive_ticket_modal"
@@ -33,7 +34,7 @@
                                     href="{% url 'ticket_detail' id=ticket.id %}">{{ ticket.category }}</a></td>
                             <td class="text-bold">{{ ticket.created_by }}</td>
                             <td>{{ ticket.title }}</td>
-                            <td>{{ ticket.note|truncatechars_html:255|linebreaksbr }}</td>
+                            <td>{{ ticket.note|render_note_preview:255 }}</td>
                             <td>
                                 <button type="button"
                                         class="btn btn-warning dropdown-toggle"

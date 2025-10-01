@@ -35,3 +35,4 @@ authentication/oauth_settings.yml
 # Shell Scripts
 *.sh
 token_get.py
+docker-compose.yml.bak

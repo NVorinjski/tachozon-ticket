@@ -28,42 +28,6 @@ def _normalize_newlines(s: str) -> str:
     # CRLF/CR → LF, doppelte Leerzeilen nicht aggressiv entfernen
     return s.replace('\r\n', '\n').replace('\r', '\n')
 
-def _html_to_text_preserving_structure(html: str) -> str:
-    """
-    Schlanke HTML→Text-Umwandlung mit Absätzen/Zeilenumbrüchen/Listen.
-    Keine externen Pakete nötig; ausreichend für Outlook/typische Mails.
-    """
-    if not html:
-        return ""
-
-    # 1) Zeilenumbrüche für Blockelemente
-    block_tags_break_before = r'(</?(p|div|h[1-6]|section|article|blockquote|table|tr|ul|ol)\b[^>]*>)'
-    html = re.sub(block_tags_break_before, r'\n\1', html, flags=re.I)
-
-    # 2) <br> → Zeilenumbruch
-    html = re.sub(r'<br\s*/?>', '\n', html, flags=re.I)
-
-    # 3) Listenelemente als Bullet Points
-    #    - li close → newline, li open → "- " (wenn nicht schon Zeilenanfang)
-    html = re.sub(r'</li\s*>', '\n', html, flags=re.I)
-    html = re.sub(r'<li\b[^>]*>', '\n- ', html, flags=re.I)
-
-    # 4) Tabellenzellen etwas trennen
-    html = re.sub(r'</t[hd]\s*>', '\t', html, flags=re.I)
-
-    # 5) Tags entfernen
-    text = re.sub(r'<[^>]+>', '', html)
-
-    # 6) HTML Entities auflösen & Newlines normalisieren
-    text = ihtml.unescape(text)
-    text = _normalize_newlines(text)
-
-    # 7) Mehrfache Leerzeilen minimal glätten (max. 2 in Folge)
-    text = re.sub(r'\n{3,}', '\n\n', text)
-
-    # 8) Trimmen
-    return text.strip()
-
 @receiver(message_received)
 def handle_incoming_message(sender, message: MailMessage, **kwargs):
     try:
@@ -78,15 +42,15 @@ def handle_incoming_message(sender, message: MailMessage, **kwargs):
             from_line = f"Von: {message.from_header or 'Unbekannt'}"
 
         # Body wählen
-        if message.text:
-            body = _normalize_newlines(message.text)
-        elif message.html:
-            body = _html_to_text_preserving_structure(message.html)
+        if message.html:  # HTML bevorzugen, unverändert speichern
+            body = message.html
+            # die Absenderzeile als eigener Absatz voranstellen
+            notes = f"<p>{from_line}</p>\n{body}"
         else:
-            body = ""
+            # Fallback: reiner Text -> nur Newlines normalisieren
+            body = _normalize_newlines(message.text or "")
+            notes = f"{from_line}\n\n{body}".strip()
 
-        # Absenderzeile oben drüber
-        notes = f"{from_line}\n\n{body}".strip()
 
         try:
             psource = ProblemSource.objects.get(slug="email")

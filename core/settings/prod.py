@@ -4,8 +4,8 @@ from core.settings.common import *
 
 import os
 
-DEBUG = False
-PROD = True if not DEBUG else False
+DEBUG = True
+PROD = True #if not DEBUG else False
 
 INSTALLED_APPS.append('huey.contrib.djhuey')
 

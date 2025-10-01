@@ -40,3 +40,4 @@ django-hijack==2.3.0
 django-background-tasks==1.2.5
 django-crispy-forms==1.13.0
 django_extensions
+bleach==6.1.0

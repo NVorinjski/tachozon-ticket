@@ -1,4 +1,5 @@
-<p class="text-muted">{{ ticket.note|linebreaksbr }}</p>
+{% load render_note %}
+<p class="text-muted">{{ ticket.note|render_note }}</p>
 <br>
 <div class="text-muted">
     <p class="text-sm">Erstellt am
