@@ -23,10 +23,10 @@
             </tr>
             <tbody id="followers_body">
             {% for follower in followers %}
-                {% if follower != ticket.assigned_to and not follower.is_staff %}
+                {% if follower != ticket.assigned_to %}
                     <tr>
                         <td>
-                            {{ follower.first_name }}
+                            {{ follower.first_name follower.last_name }}
                         </td>
                     </tr>
                 {% endif %}

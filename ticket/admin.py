@@ -37,7 +37,7 @@ class SubProblemInline(admin.TabularInline):
 
 class ProblemSourceAdmin(MPTTModelAdmin):
     mptt_indent_field = "name"
-    ordering = ("id", "name")
+    ordering = ("breadcrumb",)
     list_display = ["id", "name", "breadcrumb", "view_sub_problems"]
     list_filter = ["name", "parent"]
     search_fields = ["name"]
