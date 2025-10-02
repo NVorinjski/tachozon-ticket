@@ -52,7 +52,7 @@
             <div class="dropdown-menu" role="menu">
                 {% for employee in employees %}
                     <a class="dropdown-item" data-toggle="modal" data-target="#open_modal_{{ employee.id }}">
-                        {{ employee.first_name }}
+                        {{ employee.first_name }} {{ employee.last_name }}
                     </a>
                 {% endfor %}
             </div>
