@@ -1,5 +1,6 @@
 from django.db.models import QuerySet
 from django.views.generic import ListView
+from django.db.models import Q 
 
 from ticket.models import Ticket
 
@@ -23,12 +24,19 @@ class TicketListView(ListView):
             else:
                 tickets = Ticket.objects.created_by(user)
         elif type == "assigned_to_me":
+            # Tickets sind sichtbar, wenn ich direkter Assignee bin
+            # ODER der direkte Assignee in einem meiner Teams ist.
+            base = Ticket.objects.filter(
+                Q(assigned_to=user) |
+                Q(assigned_to__teams__in=user.teams.all())
+            ).distinct().select_related('created_by', 'assigned_to', 'modified_by', 'problem_source')
+
             if status == "open":
-                tickets = Ticket.objects.open_and_assigned_to(user)
+                tickets = base.filter(completed=False)
             elif status == "closed":
-                tickets = Ticket.objects.closed_and_assigned_to(user)
+                tickets = base.filter(completed=True)
             else:
-                tickets = Ticket.objects.assigned_to(user)
+                tickets = base
         elif type == "all" and user.is_staff:
             if status == "open":
                 tickets = Ticket.objects.all_open()

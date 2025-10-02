@@ -27,3 +27,20 @@ class MicrosoftProfile(models.Model):
             result = False
 
         return result
+
+
+class Team(models.Model):
+    name = models.CharField("Name", max_length=150, unique=True)
+    members = models.ManyToManyField(
+        User,
+        related_name="teams",
+        verbose_name="Mitglieder",
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = "Team"
+        verbose_name_plural = "Teams"
+
+    def __str__(self):
+        return self.name
