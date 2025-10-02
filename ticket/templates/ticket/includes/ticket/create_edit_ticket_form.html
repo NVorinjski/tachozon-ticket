@@ -4,9 +4,14 @@
         <div class="form-group">
             {{ ticket_form.title }}
         </div>
-        {% if ticket_form.errors %}
-            <p class="text-red">Eine Beschreibung des Problems ist erforderlich</p>
-        {% endif %}
+        {% for field in ticket_form %}
+            {% for error in field.errors %}
+                <p class="text-red">{{ field.label }}: {{ error }}</p>
+            {% endfor %}
+        {% endfor %}
+        {% for error in ticket_form.non_field_errors %}
+            <p class="text-red">{{ error }}</p>
+        {% endfor %}
         <div class="form-group">
             {{ ticket_form.note }}
         </div>

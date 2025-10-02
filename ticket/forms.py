@@ -1,8 +1,26 @@
 from django import forms
+# oben in ticket/forms.py
+from django.core.files.uploadedfile import UploadedFile, InMemoryUploadedFile, TemporaryUploadedFile
 
 
 class MultiFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
+
+
+class MultiFileField(forms.FileField):
+    def to_python(self, data):
+        # Nichts hochgeladen
+        if not data:
+            return []
+        # Einzeldatei -> in Liste packen
+        if isinstance(data, UploadedFile):
+            return [data]
+        # Mehrere Dateien -> Liste durchreichen
+        if isinstance(data, (list, tuple)):
+            # optional: nur UploadedFile-Instanzen durchlassen
+            return [f for f in data if isinstance(f, UploadedFile)]
+        # Fallback: als leer behandeln statt Fehler zu werfen
+        return []
 
 class CreateTicketForm(forms.Form):
     title = forms.CharField(
@@ -28,16 +46,14 @@ class CreateTicketForm(forms.Form):
         )
     )
 
-    files = forms.FileField(
+    files = MultiFileField(             # <- HIER statt forms.FileField
         label='Datei hochladen',
         required=False,
-        widget=MultiFileInput(
-            attrs={
-                'class': 'custom-file-input',
-                'multiple': True,
-                'id': 'attachments',
-            }
-        )
+        widget=MultiFileInput(attrs={
+            'class': 'custom-file-input',
+            'multiple': True,
+            'id': 'attachments',
+        })
     )
 
 

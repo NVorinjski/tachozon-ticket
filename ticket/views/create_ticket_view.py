@@ -6,6 +6,9 @@ from ticket.forms import CreateTicketForm
 from ticket.models import ProblemSource, Ticket, Attachment
 from ticket.services import TicketEventService
 from ticket.tasks import manual_update_analytics
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class CreateTicketView(View):
@@ -58,6 +61,16 @@ class CreateTicketView(View):
                 "ticket_form": form,
                 "open_tickets_same_category": open_tickets_same_category
             }
+
+            logger.warning(
+                "Ticket-Form invalid. errors=%s; note_len=%s; files=%s; content_type=%s; content_length=%s",
+                form.errors,
+                len(request.POST.get('note', '') or ''),
+                [(getattr(f, "name", str(f)), getattr(f, "content_type", None), getattr(f, "size", None))
+                for f in request.FILES.getlist('files')],
+                request.META.get("CONTENT_TYPE"),
+                request.META.get("CONTENT_LENGTH"),
+            )
             return render(
                 request=request,
                 template_name='ticket/create_ticket.html',

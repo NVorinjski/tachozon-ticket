@@ -1,119 +1,240 @@
-# TinyTeamsTicket
-An extremely simple IT ticketing system adapted for small and medium sized companies with easy integration 
-into Microsoft Teams and Azure Active Directory authentication.
+📖 README – Ticket-System Deployment & Betrieb
+🚀 Überblick
 
-This project was part of my master's thesis and is no longer maintained, but anyone is free to use it,
-abuse it, and modify it as they please.  Feel free to contact me at eddie.livengood@gmail.com with
-any questions.
+Dieses Repository enthält die Ticketing-App (Django + Celery/Huey + Postgres + Docker), die für mehrere Unternehmen parallel betrieben werden kann.
+Jede Instanz läuft in einem eigenen Verzeichnis mit eigener Konfiguration, Datenbank und Branding.
 
-The entire app is in German, but I would like to internationalize it at some point.
+Beispiele:
 
-## App Preview
-### Employee Dashboard (in dark mode)
-<img src="./core/static/readme_files/emp_dashboard.png" title="Employee Dashboard" width="750px"/>
+ticket.tachozon.com → Instanz A (Tachozon)
 
-### Ticket Detail (in light mode)
-<img src="./core/static/readme_files/emp_ticket_detail.png" title="Employee Dashboard" width="750px"/>
+it-teleticket.tachozon.com → Instanz B (IT-Telematics)
 
-### Ticket List (in dark mode)
-<img src="./core/static/readme_files/ticket_list.png" title="Employee Dashboard" width="750px"/>
+📦 Architektur
 
-## Dev Environment
+Django (Gunicorn): Ticketing-Backend & Frontend (AdminLTE)
 
-### Requirements
-- Python >= 3.6
-- [pip](https://pip.pypa.io/en/stable/) Package Installer for Python
-- [venv](https://docs.python.org/3/tutorial/venv.html) Virtual Environment
+Postgres: separate Datenbank pro Instanz
 
-### Install Packages and Start Server
+Huey: Hintergrund-Jobs (z. B. Mail-Import, Erinnerungen)
 
-With an active virtual environment, the following command can be used to quickly
-start the app with some testing data available.  You can then use the username
-`admin` and the password `admin` at [localhost:8000](http://localhost:8000/) to login.
+Background-Tasks: Task Worker
 
-```bash
-python manage.py quickstart
-```
-...or step by step:
+Nginx (im Container): Statisches Serving, Proxy aus Docker heraus
 
-1. Install packages
-```bash
-pip install -r requirements/dev-requirements.txt
-```
-2. Migrate the SQLite DB
-```bash
-python manage.py migrate
-```
-4. Create a superuser (follow prompts)
-```bash
-python manage.py createsuperuser
-```
-5. Create example data
-```bash
-python manage.py loaddata data_fixtures
-```
-6. Start the server
-```bash
-python manage.py runserver
-```
+System-Nginx (auf dem Host): Reverse Proxy mit SSL (Let’s Encrypt)
+
+Docker Compose: Orchestrierung pro Instanz
+
+📂 Verzeichnisstruktur
+/var/www/
+ ├── tachozon-ticket/         # Instanz A (ticket.tachozon.com)
+ └── it-teleticket.tachozon.com/  # Instanz B (it-teleticket.tachozon.com)
 
 
-### Tech-Stack
-#### Backend
-1. [Python 3](https://www.python.org/about/)
-2. [Django](https://www.djangoproject.com/)
-3. [Docker](https://www.docker.com/) & [Docker-Compose](https://docs.docker.com/compose/)
-   - Database: [Postgres](https://www.postgresql.org/)
-   - File Server & Proxy: [Nginx](https://www.nginx.com/)
-   - WSGI HTTP Server: [Gunicorn](https://gunicorn.org/)
-   - Background Cronjobs: [Huey](https://huey.readthedocs.io/en/1.11.0/)
-   - Background Tasks: [django-background-tasks](https://django-background-tasks.readthedocs.io/en/latest/)
-   
-#### Frontend
-1. [Javascript](https://developer.mozilla.org/en-US/docs/Web/JavaScript) & [Jquery](https://jquery.com/)
-2. [AdminLTE 3](https://adminlte.io/docs/3.1/)
+Jede Instanz enthält:
+
+docker-compose.yml
+
+.env (Konfiguration, Secrets, Mail-Setup)
+
+nginx/ (Container-Nginx Config)
+
+Repo-Code (geclont aus GitHub)
+
+⚙️ Setup einer neuen Instanz
+
+Repo klonen
+
+cd /var/www
+git clone https://github.com/<dein-repo>.git it-teleticket.tachozon.com
+cd it-teleticket.tachozon.com
 
 
-## Features
+.env erstellen
+Kopiere aus bestehender Instanz und anpassen:
 
-### [Microsoft Single-Sign-On Authentication](https://docs.microsoft.com/en-us/azure/active-directory/manage-apps/what-is-single-sign-on)
-For easy integration with a Microsoft account, single sign-on authentication has been implemented.
-has been implemented. You can select **Log in with Microsoft** on the login page and follow the instructions.
-follow. There are a few advantages to this:
-1. there is no need to remember an additional password or create an account
-2. the ticket system gets access to the Microsoft data and automatically pulls out the name, 
-   e-mail address and API token. With the API token you can retrieve, modify, delete or access data from [Microsoft Graph API](https://docs.microsoft.com/en-us/graph/overview).
-   change, delete or send data. 
-SSO authentication simplifies integration with Microsoft products, such as Teams.
+# Datenbank
+POSTGRES_DB=it_teleticket
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=<pw>
+POSTGRES_HOST=db
+POSTGRES_PORT=5432
 
-For users outside the domain, a normal user with credentials can be created.
+# Django
+SECRET_KEY=...
+ALLOWED_HOSTS=it-teleticket.tachozon.com
 
-### Hierarchical problem sources
-To create a ticket, the user must select a problem source. Additionally
-a problem source also have many subproblem sources, which also have subproblem sources and so on.
+# Branding
+PROJECT_NAME="IT-Telematics Ticket"
+LOGO_URL="/static/assets/img/it_telematics_logo.png"
 
-Problem sources can always be expanded. For example, if IT gets many tickets regarding problem X,
-but problem X is very complicated or unspecific, IT can create sub-problems so that the user has
-to describe more precisely what the problem is without having to describe much more in writing.
+# Mail-Einstellungen
+MAIL_USER=support@it-telematics.de
+MAIL_AUTH_USER=service@it-telematics.de   # falls Shared Mailbox
+OAUTH_TENANT_ID=...
+OAUTH_CLIENT_ID=...
+OAUTH_CLIENT_SECRET=...
+OAUTH_REFRESH_TOKEN=...
 
-The idea is that the user doesn't need to describe exactly where the problem occurred
-and that IT has a better overview of what the problem is. The feature is a kind of semi-automatic 
-categorization and it allows for improved analysis of problems while easing the burden on normal 
-and IT users.
 
-The hierarchical problem sources were implemented by [Django-MPTT Middleware](https://django-mptt.readthedocs.io/en/latest/)
-implemented. A problem source can have *0..1* parent problem source and *0..n* child problem sources.
+Docker Compose starten
 
-### Microsoft Teams Integration
-It has a `manifest.json` file that can be used to install the system as an app in Microsoft Teams.
-This creates easy access to the ticket system and allows notifications to be sent directly through Teams.
-More can be found [here](https://docs.microsoft.com/en-us/microsoftteams/platform/resources/schema/manifest-schema).
+docker compose up -d --build
 
-The app can be registered with Azure Active Directory as part of the company app catalog and is therefore only installable internally.  
 
-### Ticket and Event Timeline
-A ticket detail page shows the user the progress of the ticket
-or status (open or closed), the person responsible, all details and comments about the ticket and so
-so on.
+Superuser anlegen
 
-On the main page or so-called dashboard, the user sees the entire chronological history of all tickets.
+docker compose exec web python manage.py createsuperuser
+
+🔑 Auth & Mails (Microsoft Entra ID)
+App-Registrierung in Azure AD
+
+App registrieren → CLIENT_ID, TENANT_ID notieren.
+
+Secret anlegen (optional, für Confidential Client).
+
+API-Permissions:
+
+IMAP.AccessAsUser.All
+
+offline_access
+(Admin Consent erteilen)
+
+Token-Flow
+
+Einmalig mit msal einen Refresh-Token generieren:
+
+result = app.acquire_token_interactive([
+    "offline_access",
+    "https://outlook.office.com/IMAP.AccessAsUser.All"
+])
+print(result["refresh_token"])
+
+
+OAUTH_REFRESH_TOKEN in .env speichern.
+
+Shared Mailbox beachten
+
+MAIL_USER = Shared-Adresse (support@it-telematics.de)
+
+MAIL_AUTH_USER = Lizenzierter Benutzer mit FullAccess
+
+Token muss zu MAIL_AUTH_USER gehören, aber im IMAP-Authstring wird MAIL_USER gesetzt.
+
+✉️ Mail-Import Workflow
+
+Huey/Background-Tasks holen regelmäßig neue Mails via IMAP + OAuth2.
+
+Mail wird als Ticket gespeichert:
+
+subject → Ticket-Titel
+
+Body → note (HTML oder Text, normalisiert)
+
+Attachments → als Attachment-Model gespeichert
+
+ProblemSource wird automatisch mit email markiert.
+
+📝 Notes-Rendering
+
+E-Mails: werden beim Import normalisiert (HTML → Text, Absätze/Listen bleiben erhalten).
+
+In-App Notes: werden ohne Tags gespeichert und erst in Templates mit render_note gefiltert.
+
+Template-Tags:
+
+{{ ticket.note|render_note }} → komplette Note anzeigen
+
+{{ ticket.note|render_note_preview:100 }} → Vorschau mit Truncation
+
+🎨 Branding (pro Instanz)
+
+Variablen in .env:
+
+PROJECT_NAME (z. B. „Tachozon Ticket“ oder „IT-Telematics Ticket“)
+
+LOGO_URL (Pfad zu Logo-Datei im static)
+
+Templates nutzen Variablen statt hartem Text:
+
+<h1><b>{{ PROJECT_NAME }}</b></h1>
+<img src="{{ LOGO_URL }}" width="40">
+
+
+So bleibt der Master-Branch gleich, nur .env + statische Assets pro Instanz ändern sich.
+
+🔒 SSL & Reverse Proxy
+
+System-Nginx unter /etc/nginx/sites-enabled/
+Beispiel it-teleticket.tachozon.com.conf:
+
+server {
+    listen 80;
+    server_name it-teleticket.tachozon.com;
+    location /.well-known/acme-challenge/ { root /var/www/letsencrypt; }
+    location / { return 301 https://$host$request_uri; }
+}
+
+server {
+    listen 443 ssl http2;
+    server_name it-teleticket.tachozon.com;
+
+    ssl_certificate     /etc/letsencrypt/live/it-teleticket.tachozon.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/it-teleticket.tachozon.com/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:1338;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
+
+
+Zertifikat anlegen:
+
+sudo certbot --nginx -d it-teleticket.tachozon.com
+
+🔧 Nützliche Befehle
+
+Logs live:
+
+docker compose logs -f web
+docker compose logs -f background_tasks
+docker compose logs -f huey
+
+
+Migrationen nachziehen:
+
+docker compose run --rm web python manage.py migrate
+
+
+Collectstatic manuell:
+
+docker compose run --rm web python manage.py collectstatic --noinput
+
+
+Ticket-Superuser anlegen:
+
+docker compose exec web python manage.py createsuperuser
+
+✅ Betrieb & Wartung
+
+Mehrere Instanzen = mehrere Verzeichnisse mit eigenem docker compose.
+
+Updates:
+
+git pull
+docker compose build
+docker compose up -d
+
+
+Fehleranalyse:
+
+System-Nginx → /var/log/nginx/error.log
+
+Container → docker compose logs -f
+
+Django-Debug → .env mit DEBUG=1
