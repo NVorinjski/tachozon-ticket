@@ -17,7 +17,7 @@ class TicketAttachmentInline(admin.TabularInline):
 
 class TicketAdmin(admin.ModelAdmin):
     list_display = (
-        "id", "title", "created_by", "assigned_to", "problem_source", "completed", "priority", "created_date"
+        "id", "title", "created_by", "assigned_to", "problem_source", "completed", "assigned_team", "created_date"
     )
     list_filter = ("completed",)
     ordering = ("priority",)

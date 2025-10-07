@@ -24,12 +24,13 @@ class TicketListView(ListView):
             else:
                 tickets = Ticket.objects.created_by(user)
         elif type == "assigned_to_me":
-            # Tickets sind sichtbar, wenn ich direkter Assignee bin
-            # ODER der direkte Assignee in einem meiner Teams ist.
             base = Ticket.objects.filter(
                 Q(assigned_to=user) |
-                Q(assigned_to__teams__in=user.teams.all())
-            ).distinct().select_related('created_by', 'assigned_to', 'modified_by', 'problem_source')
+                Q(co_assignees=user) |
+                Q(assigned_team__members=user)
+            ).distinct().select_related(
+                'created_by','assigned_to','modified_by','problem_source','assigned_team'
+            ).prefetch_related('co_assignees')
 
             if status == "open":
                 tickets = base.filter(completed=False)

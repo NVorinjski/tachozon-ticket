@@ -90,6 +90,20 @@ class Ticket(models.Model):
         on_delete=models.CASCADE,
         verbose_name="Zugewiesen an"
     )
+    assigned_team = models.ForeignKey(      # <- NEU
+        "authentication.Team",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="tickets",
+        verbose_name="Zugewiesenes Team"
+    )
+    co_assignees = models.ManyToManyField(
+        User,
+        blank=True,
+        related_name="assigned_tickets_co",
+        verbose_name="Zusätlich zugewiesen"
+    )
     last_modified = models.DateTimeField(auto_now=True, verbose_name="Zuletzt bearbeitet am")
     modified_by = CurrentUserField(on_update=True, verbose_name="Zuletzt bearbeitet von")
     note = models.TextField(blank=True, null=True, verbose_name="Notiz")

@@ -22,10 +22,11 @@ class MicrosoftProfile(models.Model):
         return True if self.teams_notifications_active and self.ms_id != None else False
 
     def should_receive_this_notification(self, type):
+        # Lazy laden = kein zirkulärer Import
+        TicketEvent = apps.get_model("ticket", "TicketEvent")
         result = self.receives_notifications()
         if type == TicketEvent.EventType.NEW and not self.receives_new_ticket_notifications:
             result = False
-
         return result
 
 

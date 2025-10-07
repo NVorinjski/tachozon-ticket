@@ -9,6 +9,8 @@ __pycache__/
 
 # database & logs
 *.db
+*.db-shm
+*.db-wal
 *.sqlite3
 *.log
 
@@ -36,3 +38,4 @@ authentication/oauth_settings.yml
 *.sh
 token_get.py
 docker-compose.yml.bak
+docker-compose.override.yml

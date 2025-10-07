@@ -5,6 +5,8 @@ from django.db.models import Count, Q, F, Avg, Max, Min
 from django.utils import timezone
 
 
+
+
 class TicketQueryset(models.QuerySet):
 
     def get_common_problem_sources_for(self, user):
@@ -140,6 +142,12 @@ class TicketQueryset(models.QuerySet):
             .annotate(max_processing_time=Max(F('last_modified') - F('created_date'))) \
             .annotate(min_processing_time=Min(F('last_modified') - F('created_date'))) \
             .order_by('-total_tickets_closed')
+    
+    def visible_to(self, user):
+        return self.filter(
+            Q(assigned_to=user) | Q(assigned_team__in=user.teams.all())
+        ).distinct()
+    
 
 
 class TicketManager(models.Manager):
