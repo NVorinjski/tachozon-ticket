@@ -179,7 +179,7 @@ class TicketDetailView(View):
                 if ticket.assigned_team_id is not None:
                     ticket.assigned_team = None
                     ticket.save()
-                    notifications.create_edit_events()
+                    notifications.create_team_unassigned_event()
             else:
                 try:
                     team = Team.objects.get(pk=assign_team)
@@ -192,14 +192,14 @@ class TicketDetailView(View):
                     #     pass  # hier abbrechen / Meldung setzen, falls erzwingen gewünscht
                     ticket.assigned_team = team
                     ticket.save()
-                    notifications.create_edit_events()
+                    notifications.create_team_assigned_event(team)
 
         if add_co and current_user.is_staff:
             try:
                 u = User.objects.get(pk=add_co)
                 ticket.co_assignees.add(u)
                 ticket.save()
-                # (optional) notifications.create_assign_events(...) o. ä.
+                notifications.create_co_assignee_added_event(u)
             except User.DoesNotExist:
                 pass
 
@@ -208,6 +208,7 @@ class TicketDetailView(View):
                 u = User.objects.get(pk=remove_co)
                 ticket.co_assignees.remove(u)
                 ticket.save()
+                notifications.create_co_assignee_removed_event(u)
             except User.DoesNotExist:
                 pass
 

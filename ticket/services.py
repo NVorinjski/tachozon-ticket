@@ -9,7 +9,7 @@ from django.core.mail import send_mail
 from authentication.graph_api.base import GraphAPI
 from authentication.models import MicrosoftProfile
 from core.settings.common import EMAIL_HOST_USER, BASE_URL, AZURE_APP_ID
-from ticket.models import TicketEvent
+from ticket.models import TicketEvent, Comment
 
 graph_api = GraphAPI()
 
@@ -149,6 +149,14 @@ class TicketEventService:
                 event_text = f"{author} hat das Ticket an {target_user} zugewiesen"
             elif notification.is_access_allowed():
                 event_text = f"{author} hat {target_user} zum Ticket hinzugefügt"
+            elif notification.type == self.event_types.TEAM_ASSIGN:
+                event_text = f"{author} hat ein Team zugewiesen"
+            elif notification.type == self.event_types.TEAM_UNASSIGN:
+                event_text = f"{author} hat die Team-Zuweisung entfernt"
+            elif notification.type == self.event_types.CO_ASSIGNEE_ADD:
+                event_text = f"{author} hat {target_user} zusätzlich zugewiesen"
+            elif notification.type == self.event_types.CO_ASSIGNEE_REMOVE:
+                event_text = f"{author} hat die zusätzliche Zuweisung von {target_user} entfernt"
             else:
                 event_text = "Das Ticket hat ein neues Ereignis"
 
@@ -254,6 +262,63 @@ class TicketEventService:
             type=TicketEvent.EventType.ACCESS_ALLOWED, target_user=added_user, skip_teams=skip_teams
         )
 
+    def create_team_assigned_event(self, team, skip_teams=False):
+        """
+        Timeline-Ereignis: Team zugewiesen (mit internem Kommentar 'Team zugewiesen: <Name>').
+        """
+        system_comment = Comment.objects.create(ticket=self.ticket, text=f"Team zugewiesen: {team.name}")
+        self.create_ticket_events(
+            type=self.event_types.TEAM_ASSIGN,
+            comment=system_comment,
+            is_internal=True,
+            skip_teams=skip_teams
+        )
+
+    def create_team_unassigned_event(self, skip_teams=False):
+        """
+        Timeline-Ereignis: Team-Zuweisung entfernt.
+        """
+        system_comment = Comment.objects.create(ticket=self.ticket, text="Team-Zuweisung entfernt")
+        self.create_ticket_events(
+            type=self.event_types.TEAM_UNASSIGN,
+            comment=system_comment,
+            is_internal=True,
+            skip_teams=skip_teams
+        )
+
+    def create_co_assignee_added_event(self, user, skip_teams=False):
+        """
+        Timeline-Ereignis: weiterer Benutzer zugewiesen.
+        target_user = der hinzugefügte Benutzer (für Benachrichtigungen / Texte).
+        """
+        system_comment = Comment.objects.create(
+            ticket=self.ticket,
+            text=f"Weiterer Benutzer zugewiesen: {user.get_full_name() or user.username}"
+        )
+        self.create_ticket_events(
+            type=self.event_types.CO_ASSIGNEE_ADD,
+            target_user=user,
+            comment=system_comment,
+            is_internal=True,
+            skip_teams=skip_teams
+        )
+
+    def create_co_assignee_removed_event(self, user, skip_teams=False):
+        """
+        Timeline-Ereignis: zusätzliche Zuweisung entfernt.
+        """
+        system_comment = Comment.objects.create(
+            ticket=self.ticket,
+            text=f"Zusätzliche Zuweisung entfernt: {user.get_full_name() or user.username}"
+        )
+        self.create_ticket_events(
+            type=self.event_types.CO_ASSIGNEE_REMOVE,
+            target_user=user,
+            comment=system_comment,
+            is_internal=True,
+            skip_teams=skip_teams
+        )
+
     def get_unique_events(self):
         unfiltered_timeline_events = TicketEvent.objects\
             .filter(ticket=self.ticket, user_to_notify__isnull=True)\
@@ -318,5 +383,25 @@ class TicketEventService:
                 return f"Du hast {target_user_name} zu diesem Ticket hinzugefügt"
             else:
                 return f"{target_user_name} wurde von {author_name} zu diesem Ticket hinzugefügt"
+        elif event.type == self.event_types.TEAM_ASSIGN:
+            # Falls Kommentartext vorhanden (z. B. "Team zugewiesen: <Name>"), hänge ihn an.
+            extra = f" ({event.text})" if event.text else ""
+            return f"{beginning_text} ein Team zugewiesen{extra}"
+        elif event.type == self.event_types.TEAM_UNASSIGN:
+            return f"{beginning_text} die Team-Zuweisung entfernt"
+        elif event.type == self.event_types.CO_ASSIGNEE_ADD:
+            if current_user_is_target:
+                return f"{author_name} hat dich zusätzlich zugewiesen"
+            elif current_user_is_author:
+                return f"Du hast {target_user_name} zusätzlich zugewiesen"
+            else:
+                return f"{author_name} hat {target_user_name} zusätzlich zugewiesen"
+        elif event.type == self.event_types.CO_ASSIGNEE_REMOVE:
+            if current_user_is_target:
+                return f"{author_name} hat deine zusätzliche Zuweisung entfernt"
+            elif current_user_is_author:
+                return f"Du hast die zusätzliche Zuweisung von {target_user_name} entfernt"
+            else:
+                return f"{author_name} hat die zusätzliche Zuweisung von {target_user_name} entfernt"
         else:
             return "neues Ereignis"

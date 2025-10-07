@@ -49,7 +49,7 @@ class TicketListView(ListView):
         else:
             tickets = QuerySet()
 
-        return tickets.order_by('completed', '-priority', '-created_date')
+        return tickets.order_by('completed', '-priority', "-created_date")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

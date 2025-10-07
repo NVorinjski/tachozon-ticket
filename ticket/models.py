@@ -261,6 +261,10 @@ class TicketEvent(models.Model):
         NEW_ATTACHMENT = "new_attachment"
         ASSIGNED = "assigned"
         ACCESS_ALLOWED = "access_allowed"
+        TEAM_ASSIGN = "team_assign"
+        TEAM_UNASSIGN = "team_unassign"
+        CO_ASSIGNEE_ADD = "co_assignee_add"
+        CO_ASSIGNEE_REMOVE = "co_assignee_remove"
 
     author = CurrentUserField(related_name="author", verbose_name="Autor")
     type = models.CharField(max_length=20, choices=EventType.choices, verbose_name="Art")
@@ -336,6 +340,15 @@ class TicketEvent(models.Model):
 
     def is_access_allowed(self):
         return True if self.type == self.EventType.ACCESS_ALLOWED else False
+    
+    def is_team_assign(self):
+        return self.type == self.EventType.TEAM_ASSIGN
+    def is_team_unassign(self):
+        return self.type == self.EventType.TEAM_UNASSIGN
+    def is_co_assignee_add(self):
+        return self.type == self.EventType.CO_ASSIGNEE_ADD
+    def is_co_assignee_remove(self):
+        return self.type == self.EventType.CO_ASSIGNEE_REMOVE
 
     def event_title(self):
         return f"{self.ticket.title} Ticket"
@@ -382,6 +395,14 @@ class TicketEvent(models.Model):
             return "fas fa-user-tag"
         elif self.is_access_allowed():
             return "fas fa-door-open"
+        elif self.is_team_assign():
+            return "fas fa-users"
+        elif self.is_team_unassign():
+            return "fas fa-users-slash"
+        elif self.is_co_assignee_add():
+            return "fas fa-user-plus"
+        elif self.is_co_assignee_remove():
+            return "fas fa-user-minus"
         else:
             return "far fa-bell"
 
@@ -399,6 +420,14 @@ class TicketEvent(models.Model):
         elif self.is_new_attachment():
             return "orange"
         elif self.is_assigned():
+            return "warning"
+        elif self.is_team_assign():
+            return "info"
+        elif self.is_team_unassign():
+            return "secondary"
+        elif self.is_co_assignee_add():
+            return "info"
+        elif self.is_co_assignee_remove():
             return "warning"
         else:
             return "warning"
