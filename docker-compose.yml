@@ -71,6 +71,8 @@ services:
     depends_on:
       web:
         condition: service_started
+      daphne:
+        condition: service_started
     ports:
       - "127.0.0.1:1337:80"
     volumes:
@@ -98,6 +100,22 @@ services:
         condition: service_completed_successfully
     command: >
       bash -c "python manage.py process_tasks"
+
+  daphne:
+    <<: *ticket_base
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command:  daphne -b 0.0.0.0 -p 8001 core.asgi:application
+    expose:
+      - "8001"
+
+  redis:
+    image: redis:6-alpine
+    restart: unless-stopped
 
 volumes:
   postgres_data:

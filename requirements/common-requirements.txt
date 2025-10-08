@@ -1,38 +1,25 @@
-django>=3.2.8
+# --- Core ---
+Django==3.2.25          # fest pinnen, damit nichts upgraden kann
+asgiref>=3.3.2,<4
 
-# ticket/migrations/0001_initial.py: 4,5
-# ticket/models.py: 8
+# --- Realtime ---
+channels==3.0.5         # kompatibel mit Django 3.2.x
+daphne==3.0.2
+channels-redis==3.3.1
+
+# --- Deine bisherigen Libs ---
 django_currentuser==0.5.3
-
-# ticket/admin.py: 5
-# ticket/migrations/0001_initial.py: 6
-# ticket/models.py: 9,10
 django_mptt==0.12.0
-
-# ticket/factories.py: 1,3,4
 factory_boy==3.2.0
-#Faker>=6.6.3
-
-# ticket/tasks.py: 2
-# core/settings.py: 9
 huey==2.3.2
-
-# authentication/auth_helper.py: 1
-msal==1.12.0
+msal>=1.31.0            # ↑ aktualisiert, entfernt cryptography<4 Constraint
 PyYAML>=5.4
-
-# authentication/graph_api/base.py: 3
-# authentication/graph_api/graph_helper.py: 1
 requests==2.25.1
-
-# core/settings.py: 8
 python_decouple==3.4
-
-# core/settings.py: 10
 Unipath==1.1
 whitenoise>=5.2.0
 
-# INSTALLED_APPS
+# --- INSTALLED_APPS Ergänzungen (aus deinem Text) ---
 django-mptt>=0.12.0
 django-loginas>=0.3.9
 django-currentuser>=0.5.2

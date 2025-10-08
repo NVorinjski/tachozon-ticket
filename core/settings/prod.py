@@ -29,3 +29,12 @@ _server = os.getenv('SERVER', 'ticket.tachozon.com').strip()
 CSRF_TRUSTED_ORIGINS = [f"https://{_server}"]
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', _server]
+
+ASGI_APPLICATION = "core.asgi.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {"hosts": [("redis", 6379)]},  # Hostname wie im compose
+    }
+}

@@ -22,13 +22,15 @@ INSTALLED_APPS = [
 
     # My Apps
     'authentication',
-    'ticket',
+    'ticket.apps.TicketConfig',
+    
 
     # Third Party Apps
     'mptt',
     'hijack',
     'background_task',
-    'crispy_forms'
+    'crispy_forms',
+    'channels',
 ]
 
 INSTALLED_APPS += ['django_mailbox']
@@ -161,3 +163,5 @@ SITE_BRAND   = os.environ.get("SITE_BRAND", "Tachozon")      # z.B. "Tachozon" /
 PRODUCT_NAME = os.environ.get("PRODUCT_NAME", "Ticket")      # meist "Ticket"
 SITE_TITLE   = os.environ.get("SITE_TITLE", f"{SITE_BRAND} {PRODUCT_NAME}")
 LOGO_URL     = os.environ.get("LOGO_URL", "/static/assets/img/logo.png")
+
+
