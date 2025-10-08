@@ -74,7 +74,7 @@ services:
       daphne:
         condition: service_started
     ports:
-      - "127.0.0.1:1337:80"
+      - "127.0.0.1:${PUBLIC_HTTP_PORT:-1337}:80"
     volumes:
       - static_volume:/home/app/web/static
       - media_volume:/home/app/web/media
