@@ -75,8 +75,12 @@ def _notify_broadcast(payload: dict):
     """
     Broadcast an alle eingeloggten Tabs (unsere Broadcast-Gruppe).
     """
-    log.info("WS broadcast -> title=%s", payload.get("title"))
-    _notify_channel("broadcast", payload)
+    def _notify_broadcast(payload):
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "broadcast",
+            {"type": "send_notification", "content": payload}
+        )
 
 
 def _team_members(team):
@@ -166,16 +170,19 @@ def ticket_created_or_updated(sender, instance: Ticket, created, update_fields=N
     weil update_fields oft leer ist (je nach Save-Pfad / Form).
     """
     if created:
-        # 0) Broadcast an alle
+    # 0) Broadcast an alle – der Ersteller blendet clientseitig aus (siehe JS)
         _notify_broadcast({
             "title": "Neues Ticket",
             "message": f"#{instance.id}: {instance.title}",
             "url": _ticket_url(instance),
             "level": "info",
+            "creator_id": getattr(instance, "created_by_id", None),  # <— NEU
         })
 
-        # 1) persönlich an assigned_to
-        if getattr(instance, "assigned_to", None):
+        # 1) Persönlich an assigned_to, aber NICHT wenn assigned_to == created_by beim Erstellen
+        assigned_id = getattr(instance, "assigned_to_id", None)
+        creator_id  = getattr(instance, "created_by_id", None)
+        if assigned_id and assigned_id != creator_id:
             _notify_user(
                 instance.assigned_to,
                 {
@@ -186,7 +193,7 @@ def ticket_created_or_updated(sender, instance: Ticket, created, update_fields=N
                 },
             )
 
-        # 2) optional Team
+        # 2) Optional Team – (hier NICHT filtern, Team != einzelner Ersteller)
         if getattr(instance, "assigned_team", None):
             for u in _team_members(instance.assigned_team):
                 _notify_user(
@@ -199,6 +206,7 @@ def ticket_created_or_updated(sender, instance: Ticket, created, update_fields=N
                     },
                 )
         return
+
 
     # Selektive Updates (falls update_fields gesetzt ist)
     if update_fields:

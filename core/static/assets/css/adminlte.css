@@ -52415,4 +52415,55 @@ a.text-muted:hover {
 .dark-mode .dark-mode.accent-gray-dark .page-item .page-link:hover, .dark-mode .dark-mode.accent-gray-dark .page-item .page-link:focus {
   color: #3f474e;
 }
+
+/* Ab hier für Mobile Listen */
+
+/* Nur kleine Bildschirme nötig – Card-Liste */
+.ticket-cards { display: grid; gap: .75rem; }
+.tc-card {
+  background: var(--card-bg, #fff);
+  border: 1px solid #e5e7eb;
+  border-radius: .75rem;
+  padding: .75rem .85rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.04);
+}
+.dark-mode .tc-card { --card-bg:#0b1220; border-color:#1f2937; }
+
+.tc-row { display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
+.tc-top { margin-bottom:.25rem; }
+.tc-id { font-weight:700; }
+.tc-badges { display:flex; gap:.35rem; flex-wrap:wrap; }
+
+.tc-category { display:block; font-weight:600; margin:.1rem 0; }
+.tc-title { color:#475569; margin-bottom:.4rem; }
+.dark-mode .tc-title { color:#9aa4b2; }
+
+.tc-meta { display:flex; gap:1rem; flex-wrap:wrap; font-size:.9rem; color:#64748b; }
+.tc-meta i { margin-right:.35rem; }
+.dark-mode .tc-meta { color:#94a3b8; }
+
+.tc-actions {
+  display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.6rem;
+}
+.tc-actions .btn { min-width:40px; }
+
+/* AdminLTE Top-Nav: Header immer volle Breite */
+.layout-top-nav .main-header .navbar .container,
+.layout-top-nav .main-header .navbar .container-fluid {
+  max-width: 100% !important;
+}
+
+/* Einheitliche horizontale Abstände (auch auf iPhone mit Notch) */
+.layout-top-nav .main-header .navbar {
+  padding-left: max(12px, env(safe-area-inset-left));
+  padding-right: max(12px, env(safe-area-inset-right));
+}
+
+/* Optional: Content und Header optisch bündig */
+.content-wrapper .content,
+.content-wrapper .container-fluid {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
 /*# sourceMappingURL=adminlte.css.map */

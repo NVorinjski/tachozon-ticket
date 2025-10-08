@@ -90,13 +90,21 @@
             <!-- /.card-header -->
             <div class="card-body pt-0">
                 {% if tickets %}
-                    {% include "ticket/includes/ticket/ticket_table.html" %}
+                <!-- Mobile: Cards -->
+                <div class="d-block d-md-none">
+                    {% include "ticket/includes/ticket/ticket_cards.html" %}
+                </div>
 
-                    {% if page_obj.has_next %}
-                        {% include 'ticket/includes/pagination.html' %}
-                    {% endif %}
+                <!-- Desktop/Tablet: Tabelle -->
+                <div class="d-none d-md-block">
+                    {% include "ticket/includes/ticket/ticket_table.html" %}
+                </div>
+
+                {% if page_obj.has_next %}
+                    {% include 'ticket/includes/pagination.html' %}
+                {% endif %}
                 {% else %}
-                    <h5 class="ml-4 text-dark">Keine Tickets ):</h5>
+                <h5 class="ml-4 text-dark">Keine Tickets ):</h5>
                 {% endif %}
             </div>
             <!-- /.card-body -->

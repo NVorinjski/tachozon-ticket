@@ -1,117 +1,125 @@
 {% load static %}
 <!-- Navbar -->
-<nav class="main-header navbar navbar-expand navbar-dark">
-    <!-- Left navbar links -->
-    <ul class="navbar-nav">
-        <li>
-            <a href="{{ request.META.HTTP_REFERER }}" class="btn nav-link" class><i class="fa fa-arrow-left"></i></a>
-        </li>
-        <li class="nav-item d-none d-sm-inline-block">
-            <a href="/"><img
-                    src="{{ LOGO_URL }}" style="width: 40px;"></img></a>
-        </li>
+<nav class="main-header navbar navbar-expand-md navbar-dark">
+  <!-- Brand & Back + Toggler -->
+  <div class="container-fluid px-2">
 
-        <li class="nav-link">
-            <a href="{% url 'home' %}" class="btn-outline-light"><h4>{{ SITE_BRAND }}<b>{{ PRODUCT_NAME }}</b></h4></a>
+    <!-- Zurück -->
+    <a href="{{ request.META.HTTP_REFERER }}" class="btn nav-link px-2 mr-1">
+      <i class="fa fa-arrow-left"></i>
+    </a>
+
+    <!-- Logo -->
+    <a class="navbar-brand d-flex align-items-center py-0" href="/">
+      <img src="{{ LOGO_URL }}" alt="Logo" style="width:40px;height:auto;" class="mr-2">
+      <span class="h5 mb-0 text-white d-none d-md-inline">
+        {{ SITE_BRAND }}<b>{{ PRODUCT_NAME }}</b>
+      </span>
+    </a>
+
+    <!-- Toggler -->
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#topnav"
+            aria-controls="topnav" aria-expanded="false" aria-label="Menü umschalten">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="topnav">
+      <!-- Left links -->
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a href="{% url 'home' %}" class="nav-link">Dashboard</a>
         </li>
-        
-        <li class="nav-item d-none d-sm-inline-block">
-            <a href="{% url 'home' %}" class="nav-link">Dashboard</a>
+        <li class="nav-item">
+          <a href="{% url 'problem_sources' %}" class="nav-link">Ticket erstellen</a>
         </li>
-        <li class="nav-item d-none d-sm-inline-block">
-            <a href="{% url 'problem_sources' %}" class="nav-link">Ticket erstellen</a>
-        </li>
-        <li class="nav-item d-none d-sm-inline-block">
-            <a href="{% url 'ticket_list' type='mine' status='open' %}" class="nav-link">Meine Tickets</a>
+        <li class="nav-item">
+          <a href="{% url 'ticket_list' type='mine' status='open' %}" class="nav-link">Meine Tickets</a>
         </li>
         {% if user.is_staff %}
-            <li class="nav-item d-none d-sm-inline-block">
-                <a href="{% url 'ticket_list' type='assigned_to_me' status='open' %}" class="nav-link">Mir
-                    zugewiesen</a>
-            </li>
-            <li class="nav-item d-none d-sm-inline-block">
-                <a href="{% url 'ticket_list' type='all' %}" class="nav-link">Alle Tickets</a>
-            </li>
+          <li class="nav-item">
+            <a href="{% url 'ticket_list' type='assigned_to_me' status='open' %}" class="nav-link">Mir zugewiesen</a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'ticket_list' type='all' %}" class="nav-link">Alle Tickets</a>
+          </li>
         {% endif %}
-    </ul>
+      </ul>
 
-    <!-- SEARCH FORM -->
-    <form class="form-inline ml-3" method="get" action="{% url 'search' %}">
+      <!-- Search -->
+      <form class="form-inline my-2 my-md-0" method="get" action="{% url 'search' %}">
         <div class="input-group input-group-sm">
-            <input name="query" class="form-control form-control-navbar" type="search" placeholder="Suchen"
-                   aria-label="Suchen">
-            <div class="input-group-append">
-                <button class="btn btn-navbar" type="submit">
-                    <i class="fas fa-search"></i>
-                </button>
-            </div>
+          <input name="query" class="form-control form-control-navbar" type="search" placeholder="Suchen" aria-label="Suchen">
+          <div class="input-group-append">
+            <button class="btn btn-navbar" type="submit">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
         </div>
-    </form>
+      </form>
 
-    <!-- Right navbar links -->
-
-    <ul class="navbar-nav ml-auto">
-        <li class="nav-item d-none d-sm-inline-block">
-            <p class="nav-link">Hi, {{ user.first_name }}</p>
-        </li>
+      <!-- Right links -->
+      <ul class="navbar-nav ml-md-3 mt-2 mt-md-0 align-items-md-center">
         <li class="nav-item">
-            <div class="btn-group">
-                <a class="nav-link" href="{% url 'home' %}?dark_mode_toggle=true"
-                   title="{{ request.user.microsoftprofile.dark_mode_active|yesno:"Dunkelmodus deaktivieren, Dunkelmodus aktivieren, Dunkelmodus aktivieren" }}"
-                   role="button">
-                    <i class="{{ request.user.microsoftprofile.dark_mode_active|yesno:"fas fa-lightbulb,far fa-lightbulb,far fa-lightbulb" }}"></i>
-                </a>
-            </div>
+          <span class="nav-link">Hi, {{ user.first_name }}</span>
         </li>
-        <!-- Messages Dropdown Menu -->
+
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'home' %}?dark_mode_toggle=true"
+             title="{{ request.user.microsoftprofile.dark_mode_active|yesno:"Dunkelmodus deaktivieren, Dunkelmodus aktivieren, Dunkelmodus aktivieren" }}">
+            <i class="{{ request.user.microsoftprofile.dark_mode_active|yesno:"fas fa-lightbulb,far fa-lightbulb,far fa-lightbulb" }}"></i>
+          </a>
+        </li>
+
+        <!-- Notifications -->
         <li class="nav-item dropdown">
-            <a class="nav-link" data-toggle="dropdown" href="#">
-                <i class="far fa-bell"></i>
-                {% if notification_count > 0 %}
-                    <span class="badge badge-danger navbar-badge">{{ notification_count }}</span>{% endif %}
-            </a>
-            <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                {% for notification in top_notifications %}
-                    <a href="/ticket/{{ notification.ticket.id }}/detail/" class="dropdown-item">
-                        <!-- Message Start -->
-                        <div class="media">
-                            <div class="media-body">
-                                <h3 class="dropdown-item-title">
-                                    {{ notification.event_title|truncatechars:25 }}
-                                    <span class="float-right text-sm text-{{ notification.event_color }}"><i
-                                            class="{{ notification.event_icon }}"></i></span>
-                                </h3>
-                                <p class="text-sm">{{ notification.event_text }}</p>
-                                <p class="text-sm text-muted"><i
-                                        class="far fa-clock mr-1"></i>{{ notification.time_since_event }}</p>
-                            </div>
-                        </div>
-                        <!-- Message End -->
-                    </a>
-                {% endfor %}
-                <div class="dropdown-divider"></div>
-                <a href="/?mark_as_seen=true" class="dropdown-item dropdown-footer">
-                    {{ top_notifications|yesno:"Alle als gesehen markieren,Keine Benachrichtigungen" }}
-                </a>
-            </div>
-        </li>
-        <li class="nav-item">
-            <div class="btn-group">
-                <a class="nav-link" data-toggle="dropdown" href="#" role="button">
-                    <i class="fa fa-cogs"></i>
-                </a>
-                <div class="dropdown-menu" role="menu">
-                    <a class="dropdown-item"
-                       href="{% url 'logout' %}">Ausloggen</a>
-                    {% if user.is_staff %}
-                        <a class="dropdown-item"
-                           href="/create-user/">Benutzer anlegen</a>
-                        <a class="dropdown-item"
-                           href="/admin/">Admin-Bereich</a>
-                    {% endif %}
+          <a class="nav-link" data-toggle="dropdown" href="#">
+            <i class="far fa-bell"></i>
+            {% if notification_count > 0 %}
+              <span class="badge badge-danger navbar-badge">{{ notification_count }}</span>
+            {% endif %}
+          </a>
+          <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+            {% for notification in top_notifications %}
+              <a href="/ticket/{{ notification.ticket.id }}/detail/" class="dropdown-item">
+                <div class="media">
+                  <div class="media-body">
+                    <h3 class="dropdown-item-title">
+                      {{ notification.event_title|truncatechars:25 }}
+                      <span class="float-right text-sm text-{{ notification.event_color }}">
+                        <i class="{{ notification.event_icon }}"></i>
+                      </span>
+                    </h3>
+                    <p class="text-sm">{{ notification.event_text }}</p>
+                    <p class="text-sm text-muted">
+                      <i class="far fa-clock mr-1"></i>{{ notification.time_since_event }}
+                    </p>
+                  </div>
                 </div>
-            </div>
+              </a>
+            {% endfor %}
+            <div class="dropdown-divider"></div>
+            <a href="/?mark_as_seen=true" class="dropdown-item dropdown-footer">
+              {{ top_notifications|yesno:"Alle als gesehen markieren,Keine Benachrichtigungen" }}
+            </a>
+          </div>
         </li>
-    </ul>
+
+        <!-- Settings -->
+        <li class="nav-item dropdown">
+          <a class="nav-link" data-toggle="dropdown" href="#" role="button">
+            <i class="fa fa-cogs"></i>
+          </a>
+          <div class="dropdown-menu dropdown-menu-right" role="menu">
+            <a class="dropdown-item" href="{% url 'logout' %}">Ausloggen</a>
+            {% if user.is_staff %}
+              <a class="dropdown-item" href="/create-user/">Benutzer anlegen</a>
+              <a class="dropdown-item" href="/admin/">Admin-Bereich</a>
+            {% endif %}
+          </div>
+        </li>
+      </ul>
+    </div> <!-- /.collapse -->
+  </div> <!-- /.container-fluid -->
 </nav>
 <!-- /.navbar -->
