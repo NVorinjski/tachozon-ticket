@@ -1,0 +1,18 @@
+services:
+  db:
+    image: tachozon-ticket-db-walg:17
+    build:
+      context: .
+      dockerfile: ./db-walg/Dockerfile
+    environment:
+      - AWS_ACCESS_KEY_ID=${WALG_AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${WALG_AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${WALG_AWS_REGION}
+      - AWS_S3_FORCE_PATH_STYLE=true
+      - AWS_ENDPOINT=${WALG_AWS_ENDPOINT}
+      - WALG_S3_PREFIX=${WALG_S3_PREFIX}
+    command: >
+      postgres -c archive_mode=on
+               -c wal_level=replica
+               -c max_wal_senders=0
+               -c archive_command='wal-g wal-push "%p"'

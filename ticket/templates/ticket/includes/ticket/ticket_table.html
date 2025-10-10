@@ -73,16 +73,16 @@
                         {{ ticket.created_date }}
                     </td>
                     <td>
-                        {{ ticket.created_by.first_name }}
+                        {{ ticket.created_by.first_name }} {{ ticket.created_by.last_name }}
                     </td>
                     <td>
                         {{ ticket.last_modified }}
                     </td>
                     <td>
-                        {{ ticket.modified_by.first_name }}
+                        {{ ticket.modified_by.first_name }} {{ ticket.modified_by.last_name }}
                     </td>
                     <td>
-                        {{ ticket.assigned_to.first_name }}
+                        {{ ticket.assigned_to.first_name }} {{ ticket.assigned_to.last_name }}
                     </td>
                     <td class="project-state">
                         {% if ticket.completed %}
