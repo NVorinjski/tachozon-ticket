@@ -13,11 +13,14 @@ __pycache__/
 *.db-wal
 *.sqlite3
 *.log
+*.sql
 
 # venv
 env
 venv
-.env*
+.example.env
+.env
+.env.walg
 
 # other
 .DS_Store
@@ -39,3 +42,4 @@ authentication/oauth_settings.yml
 token_get.py
 docker-compose.yml.bak
 docker-compose.override.yml
+
