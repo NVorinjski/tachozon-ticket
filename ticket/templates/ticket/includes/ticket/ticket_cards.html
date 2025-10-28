@@ -25,16 +25,16 @@
 
       <div class="tc-meta">
         <div><i class="far fa-calendar-plus"></i> {{ ticket.created_date }}</div>
-        <div><i class="far fa-user"></i> {{ ticket.created_by.first_name }}</div>
+        <div><i class="far fa-user"></i> {{ ticket.created_by.first_name|slice:":2" }} {{ ticket.created_by.last_name }}</div>
       </div>
 
       <div class="tc-meta">
         <div><i class="far fa-edit"></i> {{ ticket.last_modified }}</div>
-        <div><i class="far fa-user-cog"></i> {{ ticket.modified_by.first_name }}</div>
+        <div><i class="far fa-user-cog"></i> {{ ticket.modified_by.first_name|slice:":2" }} {{ ticket.modified_by.last_name }}</div>
       </div>
 
       <div class="tc-meta">
-        <div><i class="fas fa-user-check"></i> {{ ticket.assigned_to.first_name|default:"—" }}</div>
+        <div><i class="fas fa-user-check"></i>  {{ ticket.assigned_to.first_name|default:""|slice:":2" }} {{ ticket.assigned_to.last_name|default:"—" }}</div>
       </div>
 
       <div class="tc-actions">

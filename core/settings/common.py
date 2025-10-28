@@ -165,3 +165,4 @@ SITE_TITLE   = os.environ.get("SITE_TITLE", f"{SITE_BRAND} {PRODUCT_NAME}")
 LOGO_URL     = os.environ.get("LOGO_URL", "/static/assets/img/logo.png")
 
 
+CONN_MAX_AGE = int(os.getenv("DJANGO_DB_CONN_MAX_AGE", "60"))
