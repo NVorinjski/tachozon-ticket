@@ -2,7 +2,6 @@
 
 {% block title %} Ticket Details {% endblock %}
 
-<!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 
     <!-- Google Font: Source Sans Pro -->
@@ -28,7 +27,6 @@
     <!-- summernote -->
     <link rel="stylesheet" href="/static/assets/plugins/summernote/summernote-bs4.min.css">
 
-
 {% endblock stylesheets %}
 
 {% block content %}
@@ -39,69 +37,110 @@
         <!-- Main content -->
         <section class="content">
 
-            <!-- Default box -->
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h1 class="card-title">Ticket Details</h1>
-                    {% include 'ticket/includes/ticket/ticket_actions.html' %}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-12 col-md-12 col-lg-7 order-2 order-md-1">
-                    <div class="row">
-                        {% include "ticket/includes/ticket/ticket_statistics.html" %}
+            {% if has_access %}
+
+                <!-- Default box -->
+                <div class="card mt-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h1 class="card-title mb-0">Ticket Details</h1>
+                        {% if can_manage %}
+                            {# Actions nur für Hauptbearbeiter #}
+                            {% include 'ticket/includes/ticket/ticket_actions.html' %}
+                        {% endif %}
                     </div>
-                    <div class="card">
-                        <div class="card-header"><h3 class="card-title">Timeline</h3></div>
-                        <div class="card card-body">
-                            <div class="row">
-                                <div class="col-12">
-                                    {% include 'ticket/includes/comment/create_comment.html' %}
-                                    {% if not user.is_staff and ticket.completed %}
-                                        <a href="{% url 'ticket_detail' id=ticket.id %}?thanks=true"
-                                           class="btn btn-block bg-info">
-                                            <i class="fas fa-heart"></i>
-                                            Danke sagen
-                                        </a>
-                                    {% endif %}
+                </div>
+
+                <div class="row">
+                    <div class="col-12 col-md-12 col-lg-7 order-2 order-md-1">
+                        <div class="row">
+                            {% include "ticket/includes/ticket/ticket_statistics.html" %}
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><h3 class="card-title">Timeline</h3></div>
+                            <div class="card card-body">
+                                <div class="row">
+                                    <div class="col-12">
+                                        {# Kommentare/Anhänge dürfen alle mit Zugriff erstellen #}
+                                        {% include 'ticket/includes/comment/create_comment.html' %}
+                                        {% if not can_manage and ticket.completed %}
+                                            <a href="{% url 'ticket_detail' id=ticket.id %}?thanks=true"
+                                               class="btn btn-block bg-info mt-2">
+                                                <i class="fas fa-heart"></i>
+                                                Danke sagen
+                                            </a>
+                                        {% endif %}
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="row mt-2">
-                                <div class="col-12">
-                                    <div class="timeline">{% include 'ticket/includes/timeline/timeline_events.html' %}</div>
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <div class="timeline">
+                                            {% include 'ticket/includes/timeline/timeline_events.html' %}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-12 col-md-12 col-lg-5 order-1 order-md-2">
-                    <div class="card">
-                        <h2 class="text-primary card-header"><i
-                                class="fas fa-ticket-alt"></i> {{ ticket.category }}
-                            {% if user.is_staff %}
-                                <div class="card-tools">
-                                    <button data-toggle="modal" data-target="#change_category_modal"
-                                            class="btn btn-warning"><i
-                                            class="fas fa-highlighter"></i>
-                                        Kategorie ändern
-                                    </button>
-                                </div>
-                                {% include 'ticket/includes/modal/change_source_modal.html' %}
+
+                    <div class="col-12 col-md-12 col-lg-5 order-1 order-md-2">
+                        <div class="card">
+                            <h2 class="text-primary card-header d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-ticket-alt"></i> {{ ticket.category }}</span>
+
+                                {% if can_manage %}
+                                    <span class="card-tools">
+                                        <button data-toggle="modal" data-target="#change_category_modal"
+                                                class="btn btn-warning">
+                                            <i class="fas fa-highlighter"></i>
+                                            Kategorie ändern
+                                        </button>
+                                    </span>
+                                    {% include 'ticket/includes/modal/change_source_modal.html' %}
+                                {% endif %}
+                            </h2>
+
+                            {% if ticket.title %}
+                                <h4 class="text-secondary card-header"> {{ ticket.title }}</h4>
                             {% endif %}
-                        </h2>
-                        {% if ticket.title %}<h4 class="text-secondary card-header"> {{ ticket.title }}</h4>{% endif %}
-                        <div class="card-body">
-                            {% if edit %}
-                                {% include 'ticket/includes/ticket/create_edit_ticket_form.html' %}
-                            {% else %}
-                                {% include 'ticket/includes/ticket/ticket_metadata.html' %}
-                            {% endif %}
-                            {% include 'ticket/includes/attachment/attachments_list.html' %}
+
+                            <div class="card-body">
+                                {% if edit and can_manage %}
+                                    {# Edit-Form nur für Hauptbearbeiter #}
+                                    {% include 'ticket/includes/ticket/create_edit_ticket_form.html' %}
+                                {% else %}
+                                    {% include 'ticket/includes/ticket/ticket_metadata.html' %}
+                                {% endif %}
+
+                                {# Anhänge-Liste anzeigen – Upload-Controls liegen in den Includes und respektieren die Form/Sichtbarkeit #}
+                                {% include 'ticket/includes/attachment/attachments_list.html' %}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <!-- /.card -->
+
+            {% else %}
+
+                {# Kein Zugriffsrecht: Nur Hinweis, keine sensiblen Includes #}
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h1 class="card-title mb-0">Ticket #{{ ticket.id }}</h1>
+                    </div>
+                    <div class="card-body">
+                        {% if post_blocked %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-ban mr-1"></i>
+                                Deine Aktion wurde nicht ausgeführt, da du keinen Zugriff hast.
+                            </div>
+                        {% endif %}
+                        <div class="alert alert-warning mb-0">
+                            <i class="fas fa-lock mr-1"></i>
+                            Du hast keinen Zugriff auf diese Ticketdetails.
+                        </div>
+                    </div>
+                </div>
+
+            {% endif %}
 
         </section>
         <!-- /.content -->
@@ -133,8 +172,7 @@
 
         $(document).ready(function () {
             $('.summernote').summernote({lang: 'de-DE'});
-        })
-
+        });
 
         function toggle_reply(reply_id, reply_link_id) {
             let reply_input = document.getElementById(reply_id);
@@ -146,7 +184,6 @@
                 document.getElementById(reply_link_id).style.display = 'block';
             }
         }
-
 
         function addUser() {
             let id = $(this).attr('id');
@@ -172,7 +209,6 @@
                 }
             });
         }
-
 
         function showResults() {
 
@@ -212,7 +248,6 @@
             return false;
         }
 
-
         var delay = (function () {
             var timer = 0;
             return function (callback, ms) {
@@ -220,7 +255,6 @@
                 timer = setTimeout(callback, ms);
             };
         })();
-
 
         $('#search_users_form').submit(function (e) {
             e.preventDefault();
@@ -248,21 +282,15 @@
         }
 
         function onExpandableTextareaInput({target: elm}) {
-            // make sure the input event originated from a textarea and it's desired to be auto-expandable
             if (!elm.classList.contains('auto-expand') || !elm.nodeName == 'TEXTAREA') return
-
             var minRows = elm.getAttribute('data-min-rows') | 0, rows;
             !elm._baseScrollHeight && getScrollHeight(elm)
-
             elm.rows = minRows
             rows = Math.ceil((elm.scrollHeight - elm._baseScrollHeight) / 16)
             elm.rows = minRows + rows
         }
 
-
-        // global delegated event listener
         document.addEventListener('input', onExpandableTextareaInput)
-
     </script>
 
 {% endblock javascripts %}
