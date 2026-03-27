@@ -106,7 +106,7 @@ class TicketListView(ListView):
         if current_direction == 'desc':
             return self.build_query_string(sort=field_name, dir='asc')
 
-        return self.build_query_string(sort=None, dir=None)
+        return self.request.path
 
     def get_sort_icon(self, field_name):
         current_sort, current_direction, _ = self.get_sorting()
