@@ -19,31 +19,58 @@
             <thead>
             <tr>
                 <th style="width: 1%">
-                    ID
+                    <a href="{{ sort_links.id }}" class="text-dark d-inline-flex align-items-center">
+                        <span>ID</span>
+                        <i class="{{ sort_icons.id }} ml-1"></i>
+                    </a>
                 </th>
                 <th style="width: 12%">
-                    Problemquelle
+                    <a href="{{ sort_links.problem_source }}" class="text-dark d-inline-flex align-items-center">
+                        <span>Problemquelle</span>
+                        <i class="{{ sort_icons.problem_source }} ml-1"></i>
+                    </a>
                 </th>
                 <th>
-                    Erstellt am
+                    <a href="{{ sort_links.created_date }}" class="text-dark d-inline-flex align-items-center">
+                        <span>Erstellt am</span>
+                        <i class="{{ sort_icons.created_date }} ml-1"></i>
+                    </a>
                 </th>
                 <th>
-                    Erstellt von
+                    <a href="{{ sort_links.created_by }}" class="text-dark d-inline-flex align-items-center">
+                        <span>Erstellt von</span>
+                        <i class="{{ sort_icons.created_by }} ml-1"></i>
+                    </a>
                 </th>
                 <th>
-                    Zuletzt bearbeitet am
+                    <a href="{{ sort_links.last_modified }}" class="text-dark d-inline-flex align-items-center">
+                        <span>Zuletzt bearbeitet am</span>
+                        <i class="{{ sort_icons.last_modified }} ml-1"></i>
+                    </a>
                 </th>
                 <th>
-                    Zuletzt bearbeitet von
+                    <a href="{{ sort_links.modified_by }}" class="text-dark d-inline-flex align-items-center">
+                        <span>Zuletzt bearbeitet von</span>
+                        <i class="{{ sort_icons.modified_by }} ml-1"></i>
+                    </a>
                 </th>
                 <th>
-                    Zugewiesen an
+                    <a href="{{ sort_links.assigned_to }}" class="text-dark d-inline-flex align-items-center">
+                        <span>Zugewiesen an</span>
+                        <i class="{{ sort_icons.assigned_to }} ml-1"></i>
+                    </a>
                 </th>
                 <th style="width: 5%" class="text-center">
-                    Status
+                    <a href="{{ sort_links.completed }}" class="text-dark d-inline-flex align-items-center justify-content-center">
+                        <span>Status</span>
+                        <i class="{{ sort_icons.completed }} ml-1"></i>
+                    </a>
                 </th>
                 <th style="width: 5%" class="text-center">
-                    Priorität
+                    <a href="{{ sort_links.priority }}" class="text-dark d-inline-flex align-items-center justify-content-center">
+                        <span>Priorität</span>
+                        <i class="{{ sort_icons.priority }} ml-1"></i>
+                    </a>
                 </th>
                 <th>
                     Actions
