@@ -20,6 +20,8 @@ class TicketDetailView(View):
         """Darf Details sehen (aber nicht zwingend verwalten)."""
         if not user.is_authenticated:
             return False
+        if user.is_staff:
+            return True
         if user == ticket.created_by:
             return True
         if ticket.assigned_to_id == user.id:
